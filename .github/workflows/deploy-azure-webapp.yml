@@ -46,10 +46,11 @@ jobs:
         id: prepare_package
         shell: pwsh
         run: |
-          dotnet publish -c Release -o "${{ runner.temp }}/publish"
+          dotnet publish samplewebsite.csproj -c Release -o "${{ runner.temp }}/publish"
           $zipPath = Join-Path "${{ runner.temp }}" 'app.zip'
           Compress-Archive -Path "${{ runner.temp }}/publish/*" -DestinationPath $zipPath -CompressionLevel Optimal
           "deploy_package=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Host "✓ Publish successful. Package: $zipPath ($('{0:N2}' -f ((Get-Item $zipPath).Length / 1MB)) MB)"
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
