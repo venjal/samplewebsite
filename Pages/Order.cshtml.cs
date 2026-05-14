@@ -8,12 +8,10 @@ namespace samplewebsite.Pages;
 public class OrderModel : PageModel
 {
     private readonly BakeryContext _context;
-    private readonly IConfiguration _config;
 
-    public OrderModel(BakeryContext context, IConfiguration config)
+    public OrderModel(BakeryContext context)
     {
         _context = context;
-        _config = config;
     }
 
     public Product? Product { get; set; }
@@ -51,10 +49,7 @@ public class OrderModel : PageModel
             return Page();
         }
 
-        // Email functionality (basic success message for now)
-        // In production, integrate with SendGrid or similar
-        // For now, just redirect to success page
-        
+        // Demo mode: No email sending, just redirect to success
         return RedirectToPage("OrderSuccess", new { productName = Product.Name, quantity = OrderQty, total = (Product.Price * OrderQty).ToString("F2") });
     }
 }
