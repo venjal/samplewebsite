@@ -21,16 +21,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4.1.7
 
+      - name: Verify project file
+        shell: pwsh
+        run: |
+          if (!(Test-Path "samplewebsite.csproj")) {
+            Write-Error "Project file not found in current directory"
+            Get-ChildItem -Recurse -Filter "*.csproj"
+            exit 1
+          }
+          Write-Host "✓ Project file found: $(Get-ChildItem samplewebsite.csproj | Select-Object FullName)"
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4.1.0
         with:
           dotnet-version: '8.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore samplewebsite.csproj
 
       - name: Build .NET 8 app
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build samplewebsite.csproj --configuration Release --no-restore
 
       - name: Publish application
         id: prepare_package

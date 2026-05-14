@@ -9,6 +9,7 @@
 obj/
 bin/
 .vscode/
+publish/
 [Bb]in/Debug/
 [Bb]in/Release/
 
