@@ -7,6 +7,8 @@
 # Build and VS temp artifacts
 .vs/
 obj/
+bin/
+.vscode/
 [Bb]in/Debug/
 [Bb]in/Release/
 
@@ -17,6 +19,10 @@ App_Data/Logs/
 # NuGet local caches
 packages/
 *.nupkg
+
+# .NET
+project.assets.json
+project.lock.json
 
 # Node/npm (if added later)
 node_modules/

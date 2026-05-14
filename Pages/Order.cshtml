@@ -1,0 +1,78 @@
+@page "{id:int}"
+@model OrderModel
+@{
+    ViewData["Title"] = "Place Your Order";
+}
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}
+
+@if (Model.Product == null)
+{
+    <p>Product not found.</p>
+}
+else
+{
+    <ol id="orderProcess">
+        <li><span class="step-number">1</span>Choose Item</li>
+        <li class="current"><span class="step-number">2</span>Details &amp; Submit</li>
+        <li><span class="step-number">3</span>Receipt</li>
+    </ol>
+    <h1>Place Your Order: @Model.Product.Name</h1>
+    <form method="post">
+        @if (Model.ErrorMessage != null)
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
+
+        <fieldset class="no-legend">
+            <legend>Place Your Order</legend>
+            <img class="product-image order-image" src="~/Images/Products/Thumbnails/@Model.Product.ImageName" alt="Image of @Model.Product.Name"/>
+            <ul class="orderPageList" data-role="listview">
+                <li>
+                    <div>
+                        <p class="description">@Model.Product.Description</p>
+                    </div>
+                </li>
+                <li class="email">
+                    <div class="fieldcontainer" data-role="fieldcontain">
+                        <label for="orderEmail">Your Email Address</label>
+                        <input type="email" id="orderEmail" name="orderEmail" required />
+                        <span class="field-validation-error" asp-validation-for="OrderEmail"></span>
+                    </div>
+                </li>
+                <li class="shipping">
+                    <div class="fieldcontainer" data-role="fieldcontain">
+                        <label for="orderShipping">Shipping Address</label>
+                        <textarea rows="4" id="orderShipping" name="orderShipping" required></textarea>
+                        <span class="field-validation-error" asp-validation-for="OrderShipping"></span>
+                    </div>
+                </li>
+                <li class="quantity">
+                    <div class="fieldcontainer" data-role="fieldcontain">
+                        <label for="orderQty">Quantity</label>
+                        <input type="number" id="orderQty" name="orderQty" value="1" min="1" required />
+                        x
+                        <span id="orderPrice">@Model.Product.Price.ToString("F2")</span>
+                        =
+                        <span id="orderTotal">@Model.Product.Price.ToString("F2")</span>
+                    </div>
+                </li>
+                <li>
+                    <button type="submit" class="order-button">Submit Order</button>
+                </li>
+            </ul>
+        </fieldset>
+    </form>
+
+    <script>
+        document.getElementById('orderQty').addEventListener('change', function() {
+            var qty = parseFloat(this.value) || 1;
+            var price = @Model.Product.Price;
+            var total = (qty * price).toFixed(2);
+            document.getElementById('orderTotal').textContent = total;
+        });
+    </script>
+}

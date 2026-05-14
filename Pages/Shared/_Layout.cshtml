@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Fourth Coffee</title>
+    <link rel="stylesheet" href="~/lib/jquery-mobile/jquery.mobile-1.1.0.min.css" />
+    <link rel="stylesheet" href="~/Content/Site.css" />
+    <link rel="stylesheet" href="~/Content/jquery.mobile.structure-1.1.0.min.css" />
+    <link rel="stylesheet" href="~/Content/jquery.mobile.theme-1.1.0.min.css" />
+</head>
+<body>
+    <div data-role="page">
+        <header data-role="header">
+            <h1><a href="~/">Fourth Coffee</a></h1>
+            <nav data-role="navbar">
+                <ul>
+                    <li><a href="~/" class="ui-btn-active">Home</a></li>
+                    <li><a href="~/about">About</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+
+        <footer data-role="footer">
+            <h4>&copy; 2024 Fourth Coffee. All rights reserved.</h4>
+        </footer>
+    </div>
+
+    <script src="~/lib/jquery/jquery-1.7.1.min.js"></script>
+    <script src="~/lib/jquery-mobile/jquery.mobile-1.1.0.min.js"></script>
+    <script src="~/lib/modernizr/modernizr-2.5.3.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

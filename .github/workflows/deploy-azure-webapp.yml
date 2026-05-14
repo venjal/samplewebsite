@@ -21,31 +21,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Prepare deployment package
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build .NET 8 app
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish application
         id: prepare_package
         shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
-          $staging = Join-Path $env:RUNNER_TEMP 'site-package'
-          New-Item -ItemType Directory -Path $staging -Force | Out-Null
-
-          $exclude = @(
-            '.git',
-            '.github',
-            '.gitignore',
-            'Readme.md',
-            'THIRDPARTYNOTICE.rtf'
-          )
-
-          Get-ChildItem -Path . -Force | Where-Object { $exclude -notcontains $_.Name } | ForEach-Object {
-            Copy-Item -Path $_.FullName -Destination $staging -Recurse -Force
-          }
-
-          $zipPath = Join-Path $env:RUNNER_TEMP 'site.zip'
-          if (Test-Path $zipPath) {
-            Remove-Item -Path $zipPath -Force
-          }
-          Compress-Archive -Path (Join-Path $staging '*') -DestinationPath $zipPath -CompressionLevel Optimal
+          dotnet publish -c Release -o "${{ runner.temp }}/publish"
+          $zipPath = Join-Path "${{ runner.temp }}" 'app.zip'
+          Compress-Archive -Path "${{ runner.temp }}/publish/*" -DestinationPath $zipPath -CompressionLevel Optimal
           "deploy_package=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Azure login (OIDC)

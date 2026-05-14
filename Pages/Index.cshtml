@@ -1,0 +1,47 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<h1>Welcome to Fourth Coffee!</h1>
+
+@if (Model.Featured != null)
+{
+    <div id="featuredProduct">
+        <img alt="Featured Product" src="~/Images/Products/@Model.Featured.ImageName"/>
+        <div id="featuredProductInfo">
+            <div id="productInfo">
+                <h2>@Model.Featured.Name</h2>
+                <p class="price">$@Model.Featured.Price.ToString("F2")</p>
+                <p class="description">@Model.Featured.Description</p>
+            </div>
+            <div id="callToAction">
+                <a class="order-button" href="~/order/@Model.Featured.Id" title="Order @Model.Featured.Name">Order Now</a>
+            </div>
+        </div>
+    </div>
+}
+
+<div id="productsWrapper">
+    <ul id="products" data-role="listview" data-inset="true">
+        @foreach (var p in Model.Products)
+        {
+            <li class="product">
+                <a href="~/order/@p.Id" title="Order @p.Name">
+                    <img class="hide-from-desktop" src="~/Images/Products/Thumbnails/@p.ImageName" alt="Image of @p.Name" />
+                    <div class="productInfo">
+                        <h3>@p.Name</h3>
+                        <img class="product-image hide-from-mobile" src="~/Images/Products/Thumbnails/@p.ImageName" alt="Image of @p.Name" />
+                        <p class="description">@p.Description</p>
+                        <p class="price hide-from-desktop">$@p.Price.ToString("F2")</p>
+                    </div>
+                </a>
+                <div class="action hide-from-mobile">
+                    <p class="price">$@p.Price.ToString("F2")</p>
+                    <a class="order-button" href="~/order/@p.Id" title="Order @p.Name">Order Now</a>
+                </div>
+            </li>
+        }
+    </ul>
+</div>
