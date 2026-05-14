@@ -1,0 +1,26 @@
+# User-specific
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build and VS temp artifacts
+.vs/
+obj/
+[Bb]in/Debug/
+[Bb]in/Release/
+
+# ASP.NET local cache/logs
+App_Data/Logs/
+*.log
+
+# NuGet local caches
+packages/
+*.nupkg
+
+# Node/npm (if added later)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db

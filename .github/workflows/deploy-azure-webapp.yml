@@ -1,0 +1,52 @@
+name: Deploy ASP.NET Web App to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare deployment package
+        id: prepare_package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $staging = Join-Path $env:RUNNER_TEMP 'site-package'
+          New-Item -ItemType Directory -Path $staging -Force | Out-Null
+
+          $exclude = @(
+            '.git',
+            '.github',
+            '.gitignore',
+            'Readme.md',
+            'THIRDPARTYNOTICE.rtf'
+          )
+
+          Get-ChildItem -Path . -Force | Where-Object { $exclude -notcontains $_.Name } | ForEach-Object {
+            Copy-Item -Path $_.FullName -Destination $staging -Recurse -Force
+          }
+
+          $zipPath = Join-Path $env:RUNNER_TEMP 'site.zip'
+          if (Test-Path $zipPath) {
+            Remove-Item -Path $zipPath -Force
+          }
+          Compress-Archive -Path (Join-Path $staging '*') -DestinationPath $zipPath -CompressionLevel Optimal
+          "deploy_package=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ${{ steps.prepare_package.outputs.deploy_package }}
