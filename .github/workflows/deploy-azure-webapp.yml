@@ -20,37 +20,58 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.1.7
-
-      - name: Verify project file
-        shell: pwsh
-        run: |
-          if (!(Test-Path "samplewebsite.csproj")) {
-            Write-Error "Project file not found in current directory"
-            Get-ChildItem -Recurse -Filter "*.csproj"
-            exit 1
-          }
-          Write-Host "✓ Project file found: $(Get-ChildItem samplewebsite.csproj | Select-Object FullName)"
+        with:
+          fetch-depth: 1
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4.1.0
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore samplewebsite.csproj
-
-      - name: Build .NET 8 app
-        run: dotnet build samplewebsite.csproj --configuration Release --no-restore
+      - name: Find and build project
+        shell: pwsh
+        run: |
+          # Find the project file
+          $projectFiles = @(Get-ChildItem -Recurse -Filter "*.csproj" -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch "\\bin\\|\\obj\\" })
+          
+          if ($projectFiles.Count -eq 0) {
+            Write-Host "::error::No .csproj files found in repository"
+            exit 1
+          }
+          
+          if ($projectFiles.Count -gt 1) {
+            Write-Host "::warning::Multiple .csproj files found, using first one"
+          }
+          
+          $projectFile = $projectFiles[0].FullName
+          Write-Host "Building: $projectFile"
+          
+          # Restore
+          & dotnet restore "$projectFile"
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          
+          # Build
+          & dotnet build "$projectFile" --configuration Release --no-restore --verbosity minimal
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          
+          Write-Host "✓ Build successful"
 
       - name: Publish application
         id: prepare_package
         shell: pwsh
         run: |
-          dotnet publish samplewebsite.csproj -c Release -o "${{ runner.temp }}/publish"
-          $zipPath = Join-Path "${{ runner.temp }}" 'app.zip'
-          Compress-Archive -Path "${{ runner.temp }}/publish/*" -DestinationPath $zipPath -CompressionLevel Optimal
-          "deploy_package=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          Write-Host "✓ Publish successful. Package: $zipPath ($('{0:N2}' -f ((Get-Item $zipPath).Length / 1MB)) MB)"
+          $projectFiles = @(Get-ChildItem -Recurse -Filter "*.csproj" -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch "\\bin\\|\\obj\\" })
+          $projectFile = $projectFiles[0].FullName
+          
+          & dotnet publish "$projectFile" -c Release -o "publish" --verbosity minimal
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          
+          $zipPath = "app.zip"
+          Compress-Archive -Path "publish/*" -DestinationPath $zipPath -CompressionLevel Optimal -Force
+          $sizeMB = [math]::Round((Get-Item $zipPath).Length / 1MB, 2)
+          
+          "deploy_package=$((Get-Item $zipPath).FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Host "✓ Published to: $(Get-Item $zipPath | Select-Object -ExpandProperty FullName) ($sizeMB MB)"
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
